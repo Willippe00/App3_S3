@@ -42,4 +42,4 @@ services:
 # Réseau par défaut
 networks:
   arret02-todo-net:
-    driver: bridge
+
