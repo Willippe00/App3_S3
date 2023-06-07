@@ -78,9 +78,7 @@ services:
 
   # Permet d'enregistrer les tâches
   db:
-    build:
-      context: ../base_img
-      dockerfile: Dockerfile
+
 
 
     container_name: arret05-db
@@ -94,10 +92,11 @@ services:
 
     volumes:
       - todo-db:/var/lib/postgresql/data
-      - ./init_db/sql:/01_create_todo_schema.sql
+      - ./init_db/sql:/docker-entrypoint-initdb.d/
 
 volumes:
   todo-db:
+
 
 # Réseau par défaut
 networks:
