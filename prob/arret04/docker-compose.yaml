@@ -5,29 +5,63 @@ services:
     # Ces services comprennent un serveur todo, trois clients, et un superviseur qui observe les tâches
     c1:
       # Premier client - Ajoute et retire des tâches automatiquement
+      build:
+        context: .
+        dockerfile: Dockerfile.client
       container_name: arret04-c1
       image: arret04-client
       tty: true
+      networks:
+        - arret04-todo-net
+      environment:
+        - MONSERVEUR= 's1'
+
 
     c2:
+      image: arret03-serveur
       tty: true
+      networks:
+        - arret04-todo-net
+      environment:
+        - MONSERVEUR= 's1'
+
 
     c3:
+      image: arret03-serveur
       tty: true
+      networks:
+        - arret04-todo-net
+      environment:
+        - MONSERVEUR= 's1'
       
     s1:
       # Serveur unique - Traite les demandes todo
+      build:
+        context: .
+        dockerfile: Dockerfile.serveur
       container_name: arret04-s1
       image: arret04-serveur
       tty: true
       volumes:
         - "./tmp_todo1:/todo"
+      networks:
+        - arret04-todo-net
+      environment:
+        - MONNOM='c1,c2,c3'
      
     gestionnaire:
       # Permet d'observer les tâches en cours
+      build:
+        context: .
+        dockerfile: Dockerfile.gestionnaire
       container_name: arret04-gestionnaire
       image: arret04-gestionnaire
       tty: true
+      networks:
+        - arret04-todo-net
+      environment:
+        - MONSERVEUR='s1,s2,s3'
+        - MONNOM='c1'
 
 # Réseau par défaut
 networks:

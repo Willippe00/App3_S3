@@ -82,6 +82,8 @@ services:
         dockerfile: Dockerfile.gestionnaire
       container_name: arret03-gestionnaire
       image: arret03-gestionnaire
+      networks:
+        - arret03-todo-net
       tty: true
       environment:
         - MONSERVEUR='s1,s2,s3'
