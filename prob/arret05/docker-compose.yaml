@@ -4,67 +4,102 @@ services:
   # Premier client - Ajoute et retire des tâches automatiquement
   c1:
     container_name: arret05-c1
-    build: 
-      dockerfile: Dockerfile.clients
-    image: a5-client
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    image: arret05-client
     depends_on:
-      - s5
+      - s1
     tty: true
+    environment:
+      - MONSERVEUR='s1'
+    networks:
+      - arret05-todo-net
 
   # Deuxième client - Ajoute et retire des tâches automatiquement
   c2:
     container_name: arret05-c2
-    image: a5-client
+    image: arret05-client
     depends_on:
-      - s5
+      - s1
     environment:
-      - "MONSERVEUR=s10"
+      - MONSERVEUR='s1'
     tty: true
+    networks:
+      - arret05-todo-net
 
   # Troisième client - Ajoute et retire des tâches automatiquement
   c3:
-    container_name: arret05-c3
-    image: a5-client
-    depends_on:
-      - s5
-    environment:
-      - "MONNOM=c30"
+    image: arret05-client
     tty: true
+    container_name: arret05-c3
+    depends_on:
+      - s1
+    environment:
+      - MONSERVEUR='s1'
+
+    networks:
+      - arret05-todo-net
 
   # Premier serveur - Traite les demandes todo
   s1:
     container_name: arret05-s1
-    build: 
-      dockerfile: Dockerfile.serveurs
-    image: a5-serveur
+    build:
+      context: .
+      dockerfile: Dockerfile.serveur
+
+    image: arret05-serveur
     tty: true
     depends_on:
-    - gestionnaire
+    - db
+
     environment:
-      - "DB_HOST=db_sergtsop"
+      - MONNOM='c1,c2,c3'
+      - DB_HOST='db'
+
+    networks:
+      - arret05-todo-net
 
   # Permet d'observer les tâches en cours
   gestionnaire:
       container_name: arret05-gestionnaire
-      build: 
+      build:
+        context: .
         dockerfile: Dockerfile.gestionnaire
+
+      networks:
+        - arret05-todo-net
       image: a5-gestionnaire
       tty: true
       environment:
         - MONSERVEUR='s1'
         - MONNOM='c1,c2,c3'
 
+
   # Permet d'enregistrer les tâches
   db:
+    build:
+      context: ../base_img
+      dockerfile: Dockerfile
+
+
     container_name: arret05-db
     image: postgres:15
+    networks:
+      - arret05-todo-net
     environment:
-      - "POSTGRES_PASSWORD=sergtsop"
-      - "POSTGRES_USER=sergtsop"
-      - "POSTGRES_DB=sergtsop"
+      - POSTGRES_PASSWORD=sergtsop
+      - POSTGRES_USER=sergtsop
+      - POSTGRES_DB=sergtsop
+
     volumes:
-      - toodo-db:/var/lib/postgresql/datum
-      - ./init_db/sql:/mauvais-docker-entrypoint-initdb.d/
+      - todo-db:/var/lib/postgresql/data
+      - ./init_db/sql:/01_create_todo_schema.sql
 
 volumes:
   todo-db:
+
+# Réseau par défaut
+networks:
+  arret05-todo-net:
+
