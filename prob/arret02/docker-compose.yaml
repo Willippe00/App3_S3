@@ -17,6 +17,10 @@ services:
       networks:
         - arret02-todo-net
       tty: true
+      environment:
+        - MONSERVEUR='s1'
+        - MONNOM='c1'
+
       
     s1:
       # Serveur - Traite les demandes todo
@@ -30,6 +34,9 @@ services:
       tty: true
       volumes:
         - "./tmp_todo1:/todo"
+      environment:
+        - MONSERVEUR='s1'
+        - MONNOM='c1'
 
     gestionnaire:
       # Permet d'observer les tâches en cours
