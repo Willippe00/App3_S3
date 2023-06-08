@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: a6-gestionnaire
+  #namespace: minikube
   labels:
     app: todo
 spec:
@@ -11,6 +12,7 @@ spec:
       app: todo
   template:
     metadata:
+
       labels:
         app: todo
     spec:
@@ -18,7 +20,7 @@ spec:
         - name: gest
           image: a6-gestionnaire
           tty: true 
-          imagePullPolicy: Never 
+          imagePullPolicy: Always #Never
           env:
           - name: MONSERVEUR
             value: 's1'  # Must match the service name in the server yaml

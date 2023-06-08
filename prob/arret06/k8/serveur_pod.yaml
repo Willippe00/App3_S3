@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: s1
+  #namespace: minikube
+
 spec:
   selector:
     name: a6-serveur
@@ -15,6 +17,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+
   name: a6-serveur
   labels:
     app: todo
@@ -32,7 +35,7 @@ spec:
       containers:
         - name: s1
           image: a6-serveur
-          imagePullPolicy: Never
+          imagePullPolicy: Always #Never
           tty: true
           ports:
             - name: ssh-connect

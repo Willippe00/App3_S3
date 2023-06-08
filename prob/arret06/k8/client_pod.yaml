@@ -2,15 +2,17 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: a6-client
+  #namespace: minikube
   labels:
     app: todo
 spec:
-  replicas: 1
+  replicas: 100
   selector:
     matchLabels:
       app: todo
   template:
     metadata:
+
       labels:
         app: todo
     spec:
@@ -18,7 +20,7 @@ spec:
         - name: c1
           image: a6-client
           tty: true
-          imagePullPolicy: Never 
+          imagePullPolicy: Always #Never
           env:
           - name: MONSERVEUR
             value: 's1' # Must match the service name in the server yaml
