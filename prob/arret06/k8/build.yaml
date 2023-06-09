@@ -1,0 +1,265 @@
+apiVersion: v1
+data:
+  initdb.sql: "/*==============================================================*/\n/*
+    db for todo list                                             */\n/* created on:
+    \    2022-05-15                                   */\n/*==============================================================*/\n\n\ncreate
+    schema todo;\n--set search_path to tododb,public;\n--alter database postgres set
+    search_path to tododb,public;\n\n\n/*==============================================================*/\n/*
+    table: todo_element                                          */\n/*==============================================================*/\ncreate
+    table todo.element (\n  id                 serial               not null primary
+    key,\n  init_time          timestamptz          not null default now(),\n  last_update_time
+    \  timestamptz          not null default now(),\n  done_time          timestamptz,\n
+    \ task               text                 null,\n  td_user            text                 null\n);\n\ncreate
+    or replace function trigger_set_timestamp()\nreturns trigger as $$\nbegin\n  new.last_update_time
+    = now();\n  return new;\nend\n$$\nlanguage plpgsql;\n\n\ncreate trigger trigger_set_timestamp\nafter
+    update on todo.element\nfor each row\nexecute procedure trigger_set_timestamp();\n\n\nset
+    timezone = 'America/Montreal';\n\ncreate view todo.extern_element as \n  select
+    \n  id, \n  init_time, \n  last_update_time, \n  done_time, \n  task, \n  td_user,
+    \n  done_time is null as is_active \n  from todo.element;\n\n-- create function
+    todo.user_element \n--    ($1 text)\n--    returns table todo.extern_element\n\ncreate
+    view todo.v_oldest_user_task as\nselect * from todo.extern_element\nwhere (init_time,
+    td_user) in\n(select min(init_time), td_user\n    from todo.extern_element\n    where
+    is_active\n    group by td_user);\n\ncreate or replace function todo.fn_oldest_user_task\n
+    \     (fn_user text)\n      returns table (\n          id  integer,\n          init_time
+    \         timestamptz,\n          last_update_time   timestamptz,\n          done_time
+    \         timestamptz,\n          task               text,\n          td_user
+    \           text)\n    as $$\n    select id, init_time, last_update_time, done_time,
+    task, td_user from todo.v_oldest_user_task where td_user=fn_user\n    $$\n    language
+    sql;\n\ncreate or replace function todo.fn_user_active_elements\n      (fn_user
+    text)\n      returns table (\n          id  integer,\n          init_time          timestamptz,\n
+    \         last_update_time   timestamptz,\n          done_time          timestamptz,\n
+    \         task               text,\n          td_user            text,\n          is_active
+    \         boolean)\n    as $$\n    select * from todo.extern_element where td_user=fn_user
+    and is_active\n    $$\n    language sql;\n\ncreate or replace function todo.fn_id_task\n
+    \     (id_task text)\n      returns table (\n          id  integer,\n          init_time
+    \         timestamptz,\n          last_update_time   timestamptz,\n          done_time
+    \         timestamptz,\n          task               text,\n          td_user
+    \           text,\n          is_active          boolean)\n    as $$\nselect *
+    from todo.extern_element where td_user=id_task\n    $$\n    language sql;\n\ncreate
+    or replace function todo.fn_user_all_elements\n      (fn_user text)\n      returns
+    table (\n          id  integer,\n          init_time          timestamptz,\n          last_update_time
+    \  timestamptz,\n          done_time          timestamptz,\n          task               text,\n
+    \         td_user            text,\n          is_active          boolean)\n    as
+    $$\n    select * from todo.extern_element where td_user=fn_user\n    $$\n    language
+    sql;"
+kind: ConfigMap
+metadata:
+  labels:
+    app: postgres
+  name: mysql-initdb-config
+---
+apiVersion: v1
+data:
+  configs.conf: "[DB]\nhostname=db-connect \ndb-port=5432\ndatabase=postgres\n"
+kind: ConfigMap
+metadata:
+  name: server-config-env
+---
+apiVersion: v1
+data:
+  POSTGRES_DB: cG9zdGdyZXM=
+  POSTGRES_PASSWORD: Z2lmMzkwLXNlY3JldC1wYXNzd29yZA==
+  POSTGRES_USER: Z2lmMzkwLXVuYW1l
+  db-creds: W2NyZWRzXQp1bmFtZT1naWYzOTAtdW5hbWUKcHdkPWdpZjM5MC1zZWNyZXQtcGFzc3dvcmQ=
+kind: Secret
+metadata:
+  name: db-secrets
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-connect
+spec:
+  ports:
+  - name: db-port
+    port: 5432
+    protocol: TCP
+    targetPort: db-port
+  selector:
+    name: db-todo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s1
+spec:
+  ports:
+  - name: ssh-port
+    port: 22
+    protocol: TCP
+    targetPort: ssh-connect
+  selector:
+    name: a6-serveur
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    app: postgres
+    type: local
+  name: postgres-pv-volume
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /var/lib/postgresql/data
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: postgres
+  name: postgres-pv-claim
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: manual
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: todo
+  name: a5-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo
+  template:
+    metadata:
+      labels:
+        app: todo
+        name: db-todo
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: db-secrets
+        image: postgres:15
+        imagePullPolicy: IfNotPresent
+        name: db
+        ports:
+        - containerPort: 5432
+          name: db-port
+        volumeMounts:
+        - mountPath: /docker-entrypoint-initdb.d
+          name: mysql-initdb
+        - mountPath: /var/lib/postgresql/data
+          name: postgredb
+      volumes:
+      - name: postgredb
+        persistentVolumeClaim:
+          claimName: postgres-pv-claim
+      - configMap:
+          name: mysql-initdb-config
+        name: mysql-initdb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: todo
+  name: a6-client
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: todo
+  template:
+    metadata:
+      labels:
+        app: todo
+    spec:
+      containers:
+      - env:
+        - name: MONSERVEUR
+          value: s1
+        image: a6-client
+        imagePullPolicy: Always
+        name: c1
+        tty: true
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: todo
+  name: a6-gestionnaire
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo
+  template:
+    metadata:
+      labels:
+        app: todo
+    spec:
+      containers:
+      - env:
+        - name: MONSERVEUR
+          value: s1
+        image: a6-gestionnaire
+        imagePullPolicy: Always
+        name: gest
+        tty: true
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: todo
+  name: a6-serveur
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo
+  template:
+    metadata:
+      labels:
+        app: todo
+        name: a6-serveur
+    spec:
+      containers:
+      - env:
+        - name: MONSERVEUR
+          value: s1
+        - name: HOSTNAME
+          value: db
+        image: a6-serveur
+        imagePullPolicy: Always
+        name: s1
+        ports:
+        - containerPort: 22
+          name: ssh-connect
+        tty: true
+        volumeMounts:
+        - mountPath: /tmp/conf
+          name: config
+          readOnly: true
+        - mountPath: /tmp/creds
+          name: creds
+          readOnly: true
+      volumes:
+      - name: creds
+        secret:
+          items:
+          - key: db-creds
+            path: creds.properties
+          optional: false
+          secretName: db-secrets
+      - configMap:
+          items:
+          - key: configs.conf
+            path: config.properties
+          name: server-config-env
+        name: config
