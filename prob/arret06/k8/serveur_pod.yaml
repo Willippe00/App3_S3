@@ -43,6 +43,8 @@ spec:
           env:
             - name: MONSERVEUR
               value: s1
+            - name: HOSTNAME
+              value: db
           volumeMounts:
             - name: config
               mountPath: "/tmp/conf"

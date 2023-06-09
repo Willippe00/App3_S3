@@ -13,6 +13,7 @@ services:
     tty: true
     environment:
       - MONSERVEUR='s1'
+      - MONNOM='c1'
     networks:
       - arret05-todo-net
 
@@ -24,6 +25,7 @@ services:
       - s1
     environment:
       - MONSERVEUR='s1'
+      - MONNOM='c2'
     tty: true
     networks:
       - arret05-todo-net
@@ -37,6 +39,7 @@ services:
       - s1
     environment:
       - MONSERVEUR='s1'
+      - MONNOM='c3'
 
     networks:
       - arret05-todo-net
@@ -44,6 +47,7 @@ services:
   # Premier serveur - Traite les demandes todo
   s1:
     container_name: arret05-s1
+
     build:
       context: .
       dockerfile: Dockerfile.serveur
@@ -54,11 +58,13 @@ services:
     - db
 
     environment:
-      - MONNOM='c1,c2,c3'
+      - MONNOM='s1'
       - DB_HOST='db'
+      - MONNOM='s1'
 
     networks:
       - arret05-todo-net
+
 
   # Permet d'observer les tâches en cours
   gestionnaire:
@@ -71,9 +77,11 @@ services:
         - arret05-todo-net
       image: a5-gestionnaire
       tty: true
+
       environment:
         - MONSERVEUR='s1'
-        - MONNOM='c1,c2,c3'
+        - MONNOM='gestionnaire'
+
 
 
   # Permet d'enregistrer les tâches

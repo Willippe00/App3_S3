@@ -13,26 +13,35 @@ services:
       tty: true
       networks:
         - arret04-todo-net
+      depends_on:
+        - s1
       environment:
         - MONSERVEUR= 's1'
+        - MONNOM='c1'
 
 
     c2:
-      image: arret03-serveur
+      image: arret03-client
       tty: true
       networks:
         - arret04-todo-net
+      depends_on:
+        - s1
       environment:
         - MONSERVEUR= 's1'
+        - MONNOM='c2'
 
 
     c3:
-      image: arret03-serveur
+      image: arret03-client
       tty: true
       networks:
         - arret04-todo-net
+      depends_on:
+        - s1
       environment:
         - MONSERVEUR= 's1'
+        - MONNOM='c3'
       
     s1:
       # Serveur unique - Traite les demandes todo
@@ -47,7 +56,7 @@ services:
       networks:
         - arret04-todo-net
       environment:
-        - MONNOM='c1,c2,c3'
+        - MONNOM='s1'
      
     gestionnaire:
       # Permet d'observer les tâches en cours
@@ -61,7 +70,7 @@ services:
         - arret04-todo-net
       environment:
         - MONSERVEUR='s1,s2,s3'
-        - MONNOM='c1'
+        - MONNOM='gestionnaire'
 
 # Réseau par défaut
 networks:

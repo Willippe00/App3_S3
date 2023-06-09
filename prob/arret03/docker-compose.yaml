@@ -42,7 +42,7 @@ services:
       depends_on:
         - s3
       environment:
-        -  MONNOM='c1'
+        -  MONNOM='c3'
         - MONSERVEUR='s3'
       
     s1:
@@ -61,6 +61,7 @@ services:
         - arret03-todo-net
       environment:
         - MONNOM='s1'
+        - MYNAME = 's1'
 
 
     s2:
@@ -70,6 +71,9 @@ services:
         - arret03-todo-net
       environment:
         - MONNOM='s2'
+        - MYNAME = 's2'
+      volumes:
+        - "./tmp_todo1:/todo"
 
     s3:
       image: arret03-serveur
@@ -78,6 +82,9 @@ services:
         - arret03-todo-net
       environment:
         - MONNOM='s3'
+        - MYNAME = 's3'
+      volumes:
+        - "./tmp_todo1:/todo"
 
     gestionnaire:
       build:
@@ -90,7 +97,7 @@ services:
       tty: true
       environment:
         - MONSERVEUR='s1,s2,s3'
-        - MONNOM='c1,c2,c3'
+        - MONNOM='gestionnaire'
 
 # Réseau par défaut
 networks:

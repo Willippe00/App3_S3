@@ -20,6 +20,8 @@ services:
       environment:
         - MONSERVEUR='s1'
         - MONNOM='c1'
+        - MYNAME = 'c1'
+         - MYSERVER = 'c1'
 
       
     s1:
@@ -35,8 +37,10 @@ services:
       volumes:
         - "./tmp_todo1:/todo"
       environment:
-        - MONSERVEUR='s1'
-        - MONNOM='c1'
+        - MONSERVEUR='c1'
+        - MONNOM='s1'
+        - MYNAME = 's1'
+        - MYSERVER = 'c1'
 
     gestionnaire:
       # Permet d'observer les tâches en cours
@@ -50,7 +54,9 @@ services:
       tty: true
       environment:
         - MONSERVEUR='s1'
-        - MONNOM='c1'
+        - MONNOM='gestionnaire'
+        - MYNAME = 'gestionnaire'
+        - MYSERVER = 'c1'
 
 # Réseau par défaut
 networks:
