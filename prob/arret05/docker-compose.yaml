@@ -12,8 +12,8 @@ services:
       - s1
     tty: true
     environment:
-      - MONSERVEUR='s1'
       - MONNOM='c1'
+      - MONSERVEUR='s1'
     networks:
       - arret05-todo-net
 
@@ -60,7 +60,7 @@ services:
     environment:
       - MONNOM='s1'
       - DB_HOST='db'
-      - MONNOM='s1'
+
 
     networks:
       - arret05-todo-net

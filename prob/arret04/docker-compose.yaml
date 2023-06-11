@@ -28,8 +28,9 @@ services:
       depends_on:
         - s1
       environment:
-        - MONSERVEUR= 's1'
         - MONNOM='c2'
+        - MONSERVEUR= 's1'
+
 
 
     c3:
@@ -40,8 +41,9 @@ services:
       depends_on:
         - s1
       environment:
-        - MONSERVEUR= 's1'
         - MONNOM='c3'
+        - MONSERVEUR= 's1'
+
       
     s1:
       # Serveur unique - Traite les demandes todo
@@ -57,6 +59,7 @@ services:
         - arret04-todo-net
       environment:
         - MONNOM='s1'
+        - MONSERVEUR='c1'
      
     gestionnaire:
       # Permet d'observer les tâches en cours
